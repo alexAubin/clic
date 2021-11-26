@@ -1,6 +1,5 @@
 
-[ ! -e /etc/yunohost/apps/hotspot ] || yunohost app remove hotspot
-[ ! -e /etc/yunohost/apps/vpnclient ] || yunohost app remove vpnclient
+# FIXME FIXME : should uninstall all apps
 
 # Remove nginx conf
 rm -rf $(ls /etc/nginx/conf.d/* -d | grep -v "yunohost\|global\|ssowat")
@@ -31,9 +30,9 @@ apt-get install slapd --reinstall
 # Reconfigure yunohost to run the postinst script that will re-init everything
 dpkg-reconfigure yunohost
 
-cp /var/www/install_internetcube/deploy/nginx.conf /etc/nginx/conf.d/default.d/internetcube_install.conf
+cp /var/www/install_clic/deploy/nginx.conf /etc/nginx/conf.d/default.d/clic_install.conf
 echo '{"redirected_urls": { "/": "/install" }}' > /etc/ssowat/conf.json.persistent
 systemctl reload nginx
 
-rm -rf /var/www/install_internetcube/data/
-touch /etc/yunohost/internetcube_to_be_installed
+rm -rf /var/www/install_clic/data/
+touch /etc/yunohost/clic_to_be_installed

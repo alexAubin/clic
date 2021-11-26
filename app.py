@@ -22,7 +22,7 @@ class PrefixMiddleware(object):
     def __call__(self, environ, start_response):
 
         if environ["PATH_INFO"].startswith(self.prefix):
-            environ["PATH_INFO"] = environ["PATH_INFO"][len(self.prefix) :]
+            environ["PATH_INFO"] = environ["PATH_INFO"][len(self.prefix):]
             environ["SCRIPT_NAME"] = self.prefix
             return self.app(environ, start_response)
         else:
@@ -30,13 +30,13 @@ class PrefixMiddleware(object):
             return ["This url does not belong to the app.".encode()]
 
 
-steps = [step.__name__ for step in steps]
-
 app = Flask(__name__, static_folder="assets")
 app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix="/install")
 
 babel = Babel(app)
 
+print(steps)
+steps = [(s.__name__, description) for s, description in steps]
 
 @babel.localeselector
 def get_locale():
@@ -49,8 +49,8 @@ def get_locale():
 @app.route("/", methods=["POST", "GET"])
 def main():
 
-    if not os.path.exists("/etc/yunohost/internetcube_to_be_installed"):
-        return "The InternetCube is already installed"
+    if not os.path.exists("/etc/yunohost/clic_to_be_installed"):
+        return "Clic is already installed"
 
     # We need this here because gettext (_) gotta be called when user makes the
     # request to know their language ... (or at least not sure how to do this
@@ -58,18 +58,14 @@ def main():
     # strings are needed and therefore we won't be able to easily collect them
     # for translation generation)
     # But the consequence is : this gotta be kept in sync with the step list
-    steps_with_i18n = [
-        ("upgrade", _("System upgrade")),
-        ("postinstall", _("Server initialization")),
-        ("firstuser", _("First user creation")),
-        ("install_vpnclient", _("VPN installation")),
-        ("configure_vpnclient", _("VPN configuration")),
-        ("install_hotspot", _("WiFi Hotspot installation")),
-        ("cleanup", _("Cleaning")),
-    ]
 
+    # FIXME: i18n
+    print(steps)
+    steps_with_i18n = [(s, _(description)) for s, description in steps]
+
+    print(steps_with_i18n)
     translated_steps = [step for step, _ in steps_with_i18n]
-    assert set(translated_steps) == set(steps)
+    assert set(translated_steps)
 
     if request.method == "GET":
         if not os.path.exists("./data/install_params.json"):
@@ -103,8 +99,6 @@ def fullreset():
 
 def start_install(form_data={}):
 
-    form_data["enable_vpn"] = form_data.get("enable_vpn") in ["true", True]
-    form_data["enable_wifi"] = form_data.get("enable_wifi") in ["true", True]
     form_data["use_dyndns_domain"] = any(
         form_data.get("main_domain").endswith("." + dyndns_domain)
         for dyndns_domain in DYNDNS_DOMAINS
@@ -119,11 +113,11 @@ def start_install(form_data={}):
             f.write(json.dumps(form_data))
 
     os.system(
-        "systemctl reset-failed internetcube_install.service &>/dev/null || true "
+        "systemctl reset-failed clic_install.service &>/dev/null || true "
     )
     cwd = os.path.dirname(os.path.realpath(__file__))
     start_status = os.system(
-        "systemd-run --unit=internetcube_install %s/venv/bin/python3 %s/install_procedure.py"
+        "systemd-run --unit=clic_install %s/venv/bin/python3 %s/install_procedure.py"
         % (cwd, cwd)
     )
 
@@ -131,7 +125,7 @@ def start_install(form_data={}):
 
     status = (
         subprocess.check_output(
-            "systemctl is-active internetcube_install.service || true", shell=True
+            "systemctl is-active clic_install.service || true", shell=True
         )
         .strip()
         .decode("utf-8")
@@ -146,7 +140,7 @@ def start_install(form_data={}):
     else:
         status = (
             subprocess.check_output(
-                "journalctl --no-pager --no-hostname -n 20 -u internetcube_install.service || true",
+                "journalctl --no-pager --no-hostname -n 20 -u clic_install.service || true",
                 shell=True,
             )
             .strip()
@@ -188,51 +182,20 @@ def validate(form):
                 )
             )
 
-    # .cube format ?
-    if form.get("enable_vpn") in ["true", True]:
-        try:
-            cube_config = json.loads(form["cubefile"])
-        except Exception as e:
-            raise Exception(
-                _(
-                    "Could not load this file as json ... Is it a valid .cube file ?"
-                    + str(form["enable_vpn"])
-                )
-            )
-
-        # TODO : refine this ?
-        expected_fields = ["server_name", "server_port", "crt_server_ca", "dns0"]
-        if not all(field in cube_config for field in expected_fields):
-            raise Exception(
-                _(
-                    "This cube file does not look valid because some fields are missing ?"
-                )
-            )
-
-        if cube_config.get("crt_client"):
-            read, write = os.pipe()
-            os.write(write, cube_config["crt_client"].replace("|", "\n").encode())
-            os.close(write)
-            try:
-                subprocess.check_call(
-                    "openssl x509 -noout -checkend 0 >/dev/null", shell=True, stdin=read
-                )
-            except Exception as e:
-                raise Exception(
-                    _(
-                        "It looks like the user certificate in the .cube file is already expired ?!"
-                    )
-                )
-
-    if form.get("enable_wifi") in ["true", True]:
-        # This doesnt work properly because of missing drivers
-        # so the interface doesn't show up
-        # Though we could maybe tweak something with lsusb (but that doesn't cover non-usb devices)
+    # .toml format ?
+    if form.get("custom_appbundle") in ["true", True]:
         pass
-        # try:
-        #    subprocess.check_call("/sbin/iw dev | grep -q Interface", shell=True)
-        # except Exception as e:
-        #    raise Exception(_("The hotspot option can't enabled because it looks like no WiFi interface is available on the system ... did you forget to plug the antenna ?"))
+        #try:
+        #    json.loads(form["bundlefile"])
+        #except Exception as e:
+        #    raise Exception(
+        #        _(
+        #            "Could not load this file as json ... Is it a valid .toml file ?"
+        #            + str(form["enable_vpn"])
+        #        )
+        #    )
+        #
+        # FIXME : validate expected data structure
 
     return True
 
@@ -242,8 +205,7 @@ def status():
     def most_recent_info(log_path):
 
         cmd = (
-            "tac %s | tail -n 50 | grep -m 1 ' INFO \| SUCCESS ' | cut -d ' ' -f 5-"
-            % log_path
+            f"tac {log_path} | tail -n 50 | grep -m 1 ' INFO \\| SUCCESS ' | cut -d ' ' -f 5-"
         )
         message = subprocess.check_output(cmd, shell=True).strip().decode("utf-8")
 
@@ -259,7 +221,7 @@ def status():
     update_info_to_redact()
 
     data = []
-    for step in steps:
+    for step, _ in steps:
         status_path = "./data/%s.status" % step
         logs_path = "./data/%s.logs" % step
         data.append(
@@ -276,7 +238,7 @@ def status():
 
     status = (
         subprocess.check_output(
-            "systemctl is-active internetcube_install.service || true", shell=True
+            "systemctl is-active clic_install.service || true", shell=True
         )
         .strip()
         .decode("utf-8")
@@ -290,7 +252,7 @@ def debug():
 
     update_info_to_redact()
     data = []
-    for step in steps:
+    for step, _ in steps:
         logs_path = "./data/%s.logs" % step
         data.append(
             {

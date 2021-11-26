@@ -2,18 +2,21 @@ import time
 import os
 import json
 import subprocess
+import toml
 from requests.utils import requote_uri
+from flask_babel import gettext as _
 
 steps = []
 current_step = None
 
 
-def step(func):
-    steps.append(func)
-    return func
+def step(description):
+    def decorator(func):
+        steps.append((func, description))
+        return func
+    return decorator
 
-
-@step
+@step("System upgrade")
 def upgrade(install_params):
 
     apt = (
@@ -29,7 +32,7 @@ def upgrade(install_params):
     run_cmd(apt + "autoremove")
 
 
-@step
+@step("System initialization")
 def postinstall(install_params):
 
     run_cmd(
@@ -39,7 +42,7 @@ def postinstall(install_params):
     )
 
 
-@step
+@step("First user creation")
 def firstuser(install_params):
 
     if " " in install_params["fullname"].strip():
@@ -59,66 +62,63 @@ def firstuser(install_params):
     )
 
 
-@step
-def install_vpnclient(install_params):
-    if not install_params["enable_vpn"]:
-        return "skipped"
+def install_app_function(app_id):
+    def install_app(install_params):
 
-    run_cmd("yunohost app install vpnclient --force")
+        # These are the default values
+        args = {
+            "admin": install_params["username"],
+            "domain": ".",
+            "language": "fr",
+            "is_public": "yes",
+        }
 
+        args.update(appbundle[app_id].get("arguments", {}))
 
-@step
-def configure_vpnclient(install_params):
-    if not install_params["enable_vpn"]:
-        return "skipped"
+        args["domain"] = (args["domain"] + install_params["main_domain"]).strip(".")
 
-    run_cmd("yunohost app setting vpnclient service_enabled -v 1")
+        serialized_args = '&'.join(arg + "=" + requote_uri(args[arg]) for arg in args)
 
-    open("/tmp/config.cube", "w").write(install_params["cubefile"])
-    os.system("chown root:root /tmp/config.cube")
-    os.system("chmod 600 /tmp/config.cube")
+        if os.system(f'yunohost domain list --output-as json | jq -r ".domains[]" | grep -q "^{args["domain"]}$"') != 0:
+            run_cmd(f'yunohost domain add {args["domain"]}')
+        run_cmd(f"yunohost app install {app_id} --force --args '{serialized_args}'")
 
-    run_cmd("yunohost app config set vpnclient --args 'config_file=/tmp/config.cube'")
+        if appbundle[app_id].get("default") and args.get("path", "/") != "/":
+            run_cmd(f"yunohost app makedefault {app_id}")
 
+    install_app.__name__ = f"install_{app_id}"
 
-@step
-def install_hotspot(install_params):
-    if not install_params["enable_wifi"]:
-        return "skipped"
-
-    wifi_ssid_esc = requote_uri(install_params["wifi_ssid"])
-    wifi_password_esc = requote_uri(install_params["wifi_password"])
-
-    run_cmd(
-        "yunohost app install hotspot --force --args '"
-        f"&wifi_ssid={wifi_ssid_esc}"
-        f"&wifi_passphrase={wifi_password_esc}"
-        "&firmware_nonfree=no'"
-    )
+    return install_app
 
 
-@step
+appbundle_path = os.path.dirname(__file__) + "/appbundle.toml"
+appbundle = toml.load(appbundle_path)
+for app in appbundle.keys():
+    step(f"Install {app}")(install_app_function(app))
+
+
+@step("Cleaning")
 def cleanup(install_params):
 
     # Update diagnosis results
     run_cmd("yunohost diagnosis run")
     run_cmd("yunohost diagnosis show --issues")
-    run_cmd("rm /etc/yunohost/internetcube_to_be_installed")
+    run_cmd("rm /etc/yunohost/clic_to_be_installed")
 
     cmds = [
         "sleep 15",
         "echo '{}' > /etc/ssowat/conf.json.persistent",
-        "rm /etc/nginx/conf.d/default.d/internetcube_install.conf",
+        "rm /etc/nginx/conf.d/default.d/clic_install.conf",
         "systemctl reload nginx",
-        "rm /etc/systemd/system/internetcube.service",
+        "rm /etc/systemd/system/clic.service",
         "systemctl daemon-reload",
-        "systemctl disable --now internetcube",
+        "systemctl disable --now clic",
     ]
 
-    open("/tmp/internetcube-cleanup", "w").write(
-        "rm /tmp/internetcube-cleanup;\n" + "\n".join(cmds)
+    open("/tmp/clic-cleanup", "w").write(
+        "rm /tmp/clic-cleanup;\n" + "\n".join(cmds)
     )
-    os.system("systemd-run --scope bash /tmp/internetcube-cleanup &")
+    os.system("systemd-run --scope bash /tmp/clic-cleanup &")
 
     time.sleep(5)
 
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     os.chdir(cwd)
     install_params = json.loads(open("./data/install_params.json").read())
 
-    for step in steps:
+    for step, description in steps:
 
         current_step = step
 

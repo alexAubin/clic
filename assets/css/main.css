@@ -1,7 +1,12 @@
-@import url(jura-font.css);
+@import url(geomanist-font.css);
 
-#logo h1, #logo h2, #logo h3 {
-    font-family: jurabook;
+h1, h2, h3, h4, h5 {
+    font-family: Geomanist;
+    color: #555;
+}
+
+#logo h2 {
+    font-size: 2.5em;
 }
 
 #logo img {

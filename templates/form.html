@@ -8,7 +8,7 @@
           <h4 class="card-header">{{ _("Server configuration") }}</h4>
           <div class="alert alert-info card-header">
               <i class="fa fa-info-circle" aria-hidden="true"></i>
-              {{ _("This is the domain that will be used to name and reach your internet cube. If you do not already own a domain name, you can pick a free domain ending with .nohost.me, .noho.st or .ynh.fr. It will automatically be configured during the setup.") }}
+              {{ _("This is the domain that will be used to name and reach your clic box. If you do not already own a domain name, you can pick a free domain ending with .nohost.me, .noho.st or .ynh.fr. It will automatically be configured during the setup.") }}
           </div>
           <div class="card-body">
               <div class="form-group row">
@@ -69,72 +69,28 @@
     </div>
 
     <div class="col-lg-8 col-sm-10 mb-3">
-        <div id="vpn" class="card">
+        <div id="appbundle" class="card">
           <h4 class="card-header">
               <div class="custom-control custom-switch">
-                  <input type="checkbox" class="custom-control-input" name="enable_vpn" id="enable_vpn" checked="">
-                  <label class="custom-control-label" for="enable_vpn">{{ _("VPN configuration") }}</label>
+                  <input type="checkbox" class="custom-control-input" name="custom_appbundle" id="custom_appbundle" checked="0">
+                  <label class="custom-control-label" for="custom_appbundle">{{ _("Custom app bundle") }}</label>
               </div>
           </h4>
           <div class="collapse alert alert-info card-header">
               <i class="fa fa-info-circle" aria-hidden="true"></i>
-              {{ _("Using a VPN allows for easier setup (no need to manually forward ports), bypasses any possible restrictions from your commercial ISP (such as blocking outgoing port 25 for emails).") }}
+              {{ _("You can specify a custom app bundle with a .toml here.") }}
           </div>
-          <div class="collapse show card-body">
+          <div class="collapse card-body">
               <div class="form-group row">
-                  <label for="cubefile" class="col-3 col-form-label">{{ _(".cube file") }}</label>
+                  <label for="bundlefile" class="col-3 col-form-label">{{ _(".toml file") }}</label>
                   <div class="custom-file col-9">
-                      <input type="file" class="validate custom-file-input" name="cubefile" id="cubefile" accept=".cube" custom-validation>
-                      <label class="custom-file-label" for="cubefile">{{ _("Choose file") }}</label>
+                      <input type="file" class="validate custom-file-input" name="bundlefile" id="bundlefile" accept=".toml" custom-validation>
+                      <label class="custom-file-label" for="bundlefile">{{ _("Choose file") }}</label>
                       <div class="invalid-feedback default">
-                          {{ _("You must provide a valid .cube file to enable the VPN") }}
+                          {{ _("You must provide a valid .toml file to enable the VPN") }}
                       </div>
-                      <div class="invalid-feedback invalidjson">
-                          {{ _("Could not load this file as json ... Is it a valid .cube file ?") }}
-                      </div>
-                  </div>
-              </div>
-          </div>
-        </div>
-    </div>
-
-    <div class="col-lg-8 col-sm-10 mb-3">
-        <div id="wifi" class="card">
-            <h4 class="card-header">
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" name="enable_wifi" id="enable_wifi" checked="">
-                    <label class="custom-control-label" for="enable_wifi">{{ _("Wifi Hotspot configuration") }}</label>
-                </div>
-            </h4>
-            <div class="collapse alert alert-info card-header">
-                <i class="fa fa-info-circle" aria-hidden="true"></i>
-                {{ _("If a VPN is configured, clients connected to the hotspot will have their traffic routed through the VPN, providing them with IPv6 and protecting their connection against censorship/spying from your commercial ISP.") }}
-            </div>
-          <div class="collapse show card-body">
-              <div class="form-group row">
-                  <label for="wifi_ssid" class="col-3 col-form-label">{{ _("Name (SSID)") }}</label>
-                  <div class="col-9">
-                      <input type="text" class="validate form-control" name="wifi_ssid" id="wifi_ssid" placeholder="{{ _("myNeutralNetwork") }}">
-                  </div>
-              </div>
-              <div class="form-group row">
-                  <label for="wifi_password" class="col-3 col-form-label">{{ _("Password") }}</label>
-                  <div class="col-9">
-                      <input type="password" class="validate form-control" name="wifi_password" id="wifi_password" pattern="^.{8,}$">
-                      <div class="invalid-feedback default">
-                          {{ _("Passwords must be at least 8 characters") }}
-                      </div>
-                  </div>
-              </div>
-              <div class="form-group row">
-                  <label for="wifi_password_repeat" class="col-3 col-form-label">{{ _("Password (repeat)") }}</label>
-                  <div class="col-9">
-                      <input type="password" class="validate form-control" name="wifi_password_repeat" id="wifi_password_repeat" pattern="^.{8,}$" custom-validation>
-                      <div class="invalid-feedback default">
-                          {{ _("Passwords must be at least 8 characters") }}
-                      </div>
-                      <div class="invalid-feedback nomatch">
-                          {{ _("Passwords do not match") }}
+                      <div class="invalid-feedback invalidtoml">
+                          {{ _("Could not load this file as toml ... Is it a valid .toml file ?") }}
                       </div>
                   </div>
               </div>

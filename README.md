@@ -1,8 +1,8 @@
-# Internet Cube install procedure
+# Clic install procedure
 
-This is the small web UI to install an internet cube
+This is the small web UI to install clic
 
-It is injected in the yunohost/internetcube images [here](https://github.com/YunoHost/arm-images/blob/yunohost/userpatches/customize-image.sh)
+It is injected in the yunohost/clic images [here](https://github.com/YunoHost/arm-images/blob/yunohost/userpatches/customize-image.sh)
 
 ### Screenshots
 
@@ -16,8 +16,8 @@ Set up a Yunohost LXC, then:
 
 ```
 cd /var/www
-git clone https://github.com/labriqueinternet/install ./install_internetcube
-cd install_internetcube
+git clone https://github.com/labriqueinternet/install ./install_clic
+cd install_clic
 source deploy/deploy.sh
 ```
 

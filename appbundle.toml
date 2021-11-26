@@ -1,0 +1,64 @@
+[hotspot]
+
+  [hotspot.arguments]
+  wifi_ssid = "ClicHotspot"
+  wifi_passphrase = "ClicHotspot"
+
+[yeswiki]
+default = true
+
+  [yeswiki.arguments]
+  domain = "."
+  path = "wiki"
+  wiki_name = "YesWiki"
+
+  [yeswiki.extensions]
+  plugins = [ "lms", "qrcode", "ferme" ]
+  themes = [ ]
+  configuration = { }
+
+[humhub]
+
+    [humhub.arguments]
+    domain = "."
+    path = "communaute"
+
+[question2answer]
+
+    [question2answer.arguments]
+    domain = "."
+    path = "forum"
+    q2a_name = "Q2A"
+
+[cryptpad]
+
+    [cryptpad.arguments]
+    domain = "pads."
+
+[funkwhale]
+
+    [funkwhale.arguments]
+    domain = "music."
+
+[peertube]
+
+    [peertube.arguments]
+    domain = "videos."
+
+[hedgedoc]
+
+    [hedgedoc.arguments]
+    domain = "."
+    path = "pads"
+
+[piwigo]
+
+    [piwigo.arguments]
+    domain = "."
+    path = "images"
+
+[nextcloud]
+
+    [nextcloud.arguments]
+    domain = "."
+    path = "nextcloud"
