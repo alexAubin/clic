@@ -15,9 +15,8 @@ It is injected in the yunohost/clic images [here](https://github.com/YunoHost/ar
 Set up a Yunohost LXC, then:
 
 ```
-cd /var/www
-git clone https://github.com/labriqueinternet/install ./install_clic
-cd install_clic
+git clone https://github.com/labriqueinternet/install /var/www/install_clic
+cd /var/www/install_clic
 source deploy/deploy.sh
 ```
 
