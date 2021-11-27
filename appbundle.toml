@@ -17,28 +17,10 @@ default = true
   themes = [ ]
   configuration = { }
 
-[humhub]
-
-    [humhub.arguments]
-    domain = "."
-    path = "communaute"
-
-[question2answer]
-
-    [question2answer.arguments]
-    domain = "."
-    path = "forum"
-    q2a_name = "Q2A"
-
 [cryptpad]
 
     [cryptpad.arguments]
     domain = "pads."
-
-[funkwhale]
-
-    [funkwhale.arguments]
-    domain = "music."
 
 [peertube]
 
@@ -50,12 +32,6 @@ default = true
     [hedgedoc.arguments]
     domain = "."
     path = "pads"
-
-[piwigo]
-
-    [piwigo.arguments]
-    domain = "."
-    path = "images"
 
 [nextcloud]
 
