@@ -1,4 +1,5 @@
 [hotspot]
+src = "https://github.com/YunoHost-Apps/hotspot_ynh/tree/testing"
 
   [hotspot.arguments]
   wifi_ssid = "ClicHotspot"

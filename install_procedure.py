@@ -79,9 +79,11 @@ def install_app_function(app_id):
 
         serialized_args = '&'.join(arg + "=" + requote_uri(args[arg]) for arg in args)
 
+        src = appbundle[app_id].get("src", app_id)
+
         if os.system(f'yunohost domain list --output-as json | jq -r ".domains[]" | grep -q "^{args["domain"]}$"') != 0:
             run_cmd(f'yunohost domain add {args["domain"]}')
-        run_cmd(f"yunohost app install {app_id} --force --args '{serialized_args}'")
+        run_cmd(f"yunohost app install {src} --force --args '{serialized_args}'")
 
         if appbundle[app_id].get("default") and args.get("path", "/") != "/":
             run_cmd(f"yunohost app makedefault {app_id}")
